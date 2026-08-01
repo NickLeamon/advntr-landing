@@ -93,18 +93,6 @@
   .step p { color: var(--muted); font-size: 17px; margin-top: 14px; max-width: 44ch; }
   .step .phone { flex: 0 0 280px; max-width: 280px; }
 
-  /* Features */
-  .features {
-    border-top: 1px solid var(--border);
-    padding: 80px 0;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
-  }
-  .feature {
-    background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 28px;
-  }
-  .feature h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-  .feature p { color: var(--muted); font-size: 15px; margin-top: 8px; }
-
   /* Footer CTA */
   .footer-cta { text-align: center; padding: 96px 0 72px; border-top: 1px solid var(--border); }
   .footer-cta h2 { font-size: clamp(30px, 4.5vw, 48px); font-weight: 800; letter-spacing: -1.5px; }
@@ -119,7 +107,6 @@
     .step, .step:nth-child(even) { flex-direction: column; gap: 36px; padding: 48px 0; text-align: center; }
     .step p { margin-left: auto; margin-right: auto; }
     .step .phone { flex-basis: auto; width: 240px; }
-    .features { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -134,10 +121,7 @@
   <section class="hero">
     <div class="hero-copy">
       <h1>Get your trips out of the groupchat<em>.</em></h1>
-      <p class="hero-sub">
-        Every group trip starts with "we should go somewhere" and dies 400 messages later.
-        advntr is where trips actually get decided — real options, honest prices, one group call.
-      </p>
+      <p class="hero-sub">Real options. Honest prices. One group decision.</p>
       <div class="cta-row">
         <a class="cta" href="#get">Get the app</a>
         <span class="cta-note">Free · iPhone</span>
@@ -151,22 +135,15 @@
 
 <div class="wrap">
   <section class="problem">
-    <p class="big">
-      Someone always ends up planning the whole thing alone<span class="fade">
-      — building the slideshow, chasing votes, doing the math.</span>
-    </p>
-    <p class="small">advntr does the project-manager part, so your group just picks a trip.</p>
+    <p class="big">Someone always plans the whole thing alone<span class="fade">. Not anymore.</span></p>
   </section>
 
   <section class="steps">
     <div class="step">
       <div class="step-copy">
         <div class="step-num">01 — Discover</div>
-        <h2>Swipe through places worth going</h2>
-        <p>
-          A feed of vetted cities and things to do — with real flight ranges and the right
-          season, not stock-photo fantasy. Tap ♥ and it's saved to your trip.
-        </p>
+        <h2>Swipe places worth going</h2>
+        <p>Real flights, right season. ♥ saves it to the trip.</p>
       </div>
       <div class="phone"><img src="img/04-discover.png" alt="Discover feed showing Tulum with flight prices and season" width="720" height="1560"></div>
     </div>
@@ -174,11 +151,8 @@
     <div class="step">
       <div class="step-copy">
         <div class="step-num">02 — Pitch</div>
-        <h2>Turn picks into a real proposal</h2>
-        <p>
-          Dates, stay, day-by-day plan, and an honest per-person price — flights from each
-          friend's own airport, lodging split by rooms, activities summed exactly.
-        </p>
+        <h2>Pitch it, priced</h2>
+        <p>Dates, stay, days — an honest price per person.</p>
       </div>
       <div class="phone"><img src="img/03-proposal.png" alt="A Chiang Mai proposal with per-person price breakdown and date votes" width="720" height="1560"></div>
     </div>
@@ -186,34 +160,16 @@
     <div class="step">
       <div class="step-copy">
         <div class="step-num">03 — Decide</div>
-        <h2>The group rates, argues, and locks one in</h2>
-        <p>
-          Everyone votes on the proposals, the chat lives next to the plans it's about,
-          and one tap locks the winner. No more "so are we doing this or not?"
-        </p>
+        <h2>The group picks one</h2>
+        <p>Rate, argue, lock it in.</p>
       </div>
       <div class="phone"><img src="img/05-chat.png" alt="Group chat discussing Lisbon vs Chiang Mai proposals" width="720" height="1560"></div>
     </div>
   </section>
 
-  <section class="features">
-    <div class="feature">
-      <h3>Honest prices</h3>
-      <p>Every number says whether it's exact or an estimate. No fantasy budgets that double at checkout.</p>
-    </div>
-    <div class="feature">
-      <h3>Built for groups</h3>
-      <p>Each trip is its own space with its own people. Flights price from every traveler's home airport.</p>
-    </div>
-    <div class="feature">
-      <h3>Zero homework</h3>
-      <p>No settings to learn, no boards to maintain. Open it twice a year and it still makes sense.</p>
-    </div>
-  </section>
-
   <section class="footer-cta" id="get">
     <h2>Plan the trip. Skip the spreadsheet<em style="color:var(--accent);font-style:normal">.</em></h2>
-    <p>advntr is in private beta on iPhone — coming soon to the App Store.</p>
+    <p>Private beta · iPhone</p>
     <div class="cta-row" style="justify-content:center">
       <a class="cta" href="mailto:naleamon1@gmail.com?subject=advntr%20beta%20access">Get early access</a>
     </div>
