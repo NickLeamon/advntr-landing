@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You're invited — advntr</title>
+<meta name="description" content="Someone wants your take on a trip. Open it in advntr.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/img/icon.png">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --card: #141417;
+    --border: #232329;
+    --text: #f4f4f5;
+    --muted: #9d9da6;
+    --accent: #ff4560;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 0 24px; width: 100%; }
+  header { display: flex; justify-content: center; padding: 32px 0 8px; }
+  .wordmark { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); text-decoration: none; }
+  .wordmark span { color: var(--accent); }
+
+  main { flex: 1; display: flex; align-items: center; }
+  .card {
+    width: 100%;
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 32px 28px; text-align: center;
+  }
+  .pitch { font-size: 21px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.3; margin: 0 0 8px; }
+  .pitch .trip { color: var(--accent); }
+  .meta { color: var(--muted); font-size: 15px; margin: 0 0 28px; }
+  .cta {
+    display: block; width: 100%; font-size: 17px; font-weight: 700; color: var(--bg);
+    background: var(--text); padding: 16px 24px; border-radius: 999px; text-decoration: none;
+    border: none; cursor: pointer; transition: transform .15s, opacity .15s;
+  }
+  .cta:hover { transform: translateY(-1px); opacity: .9; }
+  .fallback { color: var(--muted); font-size: 14px; margin-top: 18px; }
+  .fallback a { color: var(--text); }
+
+  .state { color: var(--muted); font-size: 16px; text-align: center; padding: 24px 0; }
+  .state a { color: var(--text); }
+
+  footer {
+    text-align: center; color: var(--muted); font-size: 13px; padding: 24px 0 32px;
+  }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="wordmark" href="/">advntr<span>.</span></a>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="content" class="state">Loading your invite&hellip;</div>
+  </div>
+</main>
+
+<footer>
+  <a href="/privacy.html">Privacy</a>
+</footer>
+
+<script>
+(function () {
+  // Publishable/anon key — safe to embed client-side, same one the app
+  // ships (see adventure/.env.example). RLS protects data, not key secrecy.
+  var SUPABASE_URL = 'https://vjsgvkercbtyzpdauswo.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_UM19CZ6ExmxXyzsgn4Flbg_KmLMIMXz';
+
+  // No App Store / TestFlight listing exists yet (eas.json submit.production
+  // is still empty — see invite-join-decide.spec.md §7). Flip this the day
+  // one does; everything below already branches on it being set.
+  var STORE_URL = null;
+
+  var content = document.getElementById('content');
+  var id = decodeURIComponent(location.pathname.replace(/^\/(?:i|join)\//, '').replace(/\/$/, ''));
+
+  // Analytics_events sink doesn't exist yet (tech-plan §6 build-order item 4,
+  // sequenced after this page). Named now so the call sites don't need to be
+  // rediscovered later — swap the body for a real insert once the table and
+  // an anon-insert policy ship.
+  function track(name) {
+    // no-op until analytics_events lands
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function renderInvalid() {
+    content.className = 'state';
+    content.innerHTML = 'This invite link isn’t valid anymore — it may have expired or been revoked.<br><br><a href="/">Learn about advntr &rarr;</a>';
+  }
+
+  function renderFound(invite) {
+    track('invite_opened');
+    var tripName = escapeHtml(invite.trip_name);
+    var inviter = escapeHtml(invite.inviter_first_name || 'A friend');
+    var draftWord = invite.draft_count === 1 ? 'place' : 'places';
+
+    content.className = '';
+    content.innerHTML =
+      '<div class="card">' +
+        '<p class="pitch">' + inviter + ' wants your take on <span class="trip">' + tripName + '</span></p>' +
+        '<p class="meta">' + invite.draft_count + ' ' + draftWord + ' pitched' +
+          (invite.member_count > 0 ? ' · ' + invite.member_count + ' already in' : '') + '</p>' +
+        '<button class="cta" id="open-cta">Open in advntr</button>' +
+        '<p class="fallback">New to advntr? <a href="mailto:naleamon1@gmail.com?subject=advntr%20invite&body=Trip%3A%20' +
+          encodeURIComponent(tripName) + '%0AInvite%3A%20' + encodeURIComponent(id) +
+          '">Get early access</a> — we’ll get you set up, then this link takes you straight in.</p>' +
+      '</div>';
+
+    document.getElementById('open-cta').addEventListener('click', function () {
+      // Must run inside this handler — clipboard writes only resolve inside
+      // a user gesture on iOS Safari (spec §4a).
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(id).catch(function () {});
+      }
+      track('invite_store_redirect');
+      if (STORE_URL) {
+        location.href = STORE_URL;
+      } else {
+        // Already-installed testers (dev/Expo Go build) still get taken
+        // straight in; everyone else keeps reading the fallback below.
+        location.href = 'advntr://join/' + id;
+      }
+    });
+  }
+
+  if (!id) {
+    renderInvalid();
+    return;
+  }
+
+  fetch(SUPABASE_URL + '/rest/v1/rpc/get_invite_preview', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({ p_invite_id: id })
+  })
+    .then(function (res) {
+      if (!res.ok) throw new Error('bad response');
+      return res.json();
+    })
+    .then(function (rows) {
+      if (!rows || !rows.length) {
+        renderInvalid();
+        return;
+      }
+      renderFound(rows[0]);
+    })
+    .catch(function () {
+      content.className = 'state';
+      content.innerHTML = 'Couldn’t load this invite. Check your connection and reload.';
+    });
+})();
+</script>
+
+</body>
+</html>

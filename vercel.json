@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/i/:id", "destination": "/invite.html" },
+    { "source": "/join/:id", "destination": "/invite.html" }
+  ]
+}
