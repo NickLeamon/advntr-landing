@@ -91,12 +91,23 @@
   var content = document.getElementById('content');
   var id = decodeURIComponent(location.pathname.replace(/^\/(?:i|join)\//, '').replace(/\/$/, ''));
 
-  // Analytics_events sink doesn't exist yet (tech-plan §6 build-order item 4,
-  // sequenced after this page). Named now so the call sites don't need to be
-  // rediscovered later — swap the body for a real insert once the table and
-  // an anon-insert policy ship.
+  // analytics_events landed (adventure 20260810000000_analytics_events.sql)
+  // with an anon-insert policy built for exactly this — the joiner hasn't
+  // opened the app yet, so there's no session to attach. Best-effort: no
+  // await, no retry. The invite_store_redirect call fires right before
+  // location.href changes, so it can lose the race against navigation same
+  // as any fire-before-unload beacon; sendBeacon isn't usable here since it
+  // can't carry the apikey/Authorization headers this endpoint needs.
   function track(name) {
-    // no-op until analytics_events lands
+    fetch(SUPABASE_URL + '/rest/v1/analytics_events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ kind: name, payload: { inviteId: id } })
+    }).catch(function () {});
   }
 
   function escapeHtml(s) {
