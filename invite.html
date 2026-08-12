@@ -83,10 +83,10 @@
   var SUPABASE_URL = 'https://vjsgvkercbtyzpdauswo.supabase.co';
   var SUPABASE_ANON_KEY = 'sb_publishable_UM19CZ6ExmxXyzsgn4Flbg_KmLMIMXz';
 
-  // No App Store / TestFlight listing exists yet (eas.json submit.production
-  // is still empty — see invite-join-decide.spec.md §7). Flip this the day
-  // one does; everything below already branches on it being set.
-  var STORE_URL = null;
+  // Public TestFlight link, serving the moderated build (register §56).
+  // Deep link is always tried first — see the click handler below — this
+  // is only the fallback for people who don't have advntr installed yet.
+  var STORE_URL = 'https://testflight.apple.com/join/TGDbMpqf';
 
   var content = document.getElementById('content');
   var id = decodeURIComponent(location.pathname.replace(/^\/(?:i|join)\//, '').replace(/\/$/, ''));
@@ -134,9 +134,8 @@
         '<p class="meta">' + invite.draft_count + ' ' + draftWord + ' pitched' +
           (invite.member_count > 0 ? ' · ' + invite.member_count + ' already in' : '') + '</p>' +
         '<button class="cta" id="open-cta">Open in advntr</button>' +
-        '<p class="fallback">New to advntr? <a href="mailto:naleamon1@gmail.com?subject=advntr%20invite&body=Trip%3A%20' +
-          encodeURIComponent(tripName) + '%0AInvite%3A%20' + encodeURIComponent(id) +
-          '">Get early access</a> — we’ll get you set up, then this link takes you straight in.</p>' +
+        '<p class="fallback">New to advntr? <a href="' + STORE_URL +
+          '">Join the beta on TestFlight</a> — install it, then this link takes you straight in.</p>' +
       '</div>';
 
     document.getElementById('open-cta').addEventListener('click', function () {
@@ -146,13 +145,25 @@
         navigator.clipboard.writeText(id).catch(function () {});
       }
       track('invite_store_redirect');
+
+      // Destination, not route: already-installed testers must land IN
+      // THE TRIP, not on TestFlight. Fire the deep link first. If advntr
+      // takes the navigation, this page backgrounds (visibilitychange /
+      // pagehide) before the timer fires, and the TestFlight fallback is
+      // cancelled. Only someone without the app — for whom the deep link
+      // is a silent no-op and the page stays foregrounded — falls through
+      // to it.
       if (STORE_URL) {
-        location.href = STORE_URL;
-      } else {
-        // Already-installed testers (dev/Expo Go build) still get taken
-        // straight in; everyone else keeps reading the fallback below.
-        location.href = 'advntr://join/' + id;
+        var fallbackTimer = setTimeout(function () {
+          location.href = STORE_URL;
+        }, 1500);
+        var cancelFallback = function () {
+          clearTimeout(fallbackTimer);
+        };
+        document.addEventListener('visibilitychange', cancelFallback);
+        window.addEventListener('pagehide', cancelFallback);
       }
+      location.href = 'advntr://join/' + id;
     });
   }
 
