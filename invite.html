@@ -6,6 +6,21 @@
 <title>You're invited — advntr</title>
 <meta name="description" content="Someone wants your take on a trip. Open it in advntr.">
 <meta name="robots" content="noindex">
+<!-- Link preview. This URL's whole job is to be pasted into a group chat, so the
+     unfurl IS the first impression. noindex above does not suppress these: it
+     speaks to crawlers, not to the unfurlers iMessage/WhatsApp/Slack run.
+     og:url is deliberately absent — the id varies per invite and a static
+     canonical would collapse every invite's preview onto one link. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="advntr">
+<meta property="og:title" content="You're invited to help pick the trip">
+<meta property="og:description" content="Rate the options, argue for your favourite, and help lock one in. Opens in advntr.">
+<meta property="og:image" content="https://advntr-landing.vercel.app/img/02-triphome.png">
+<meta property="og:image:alt" content="An advntr trip with options to rate">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="You're invited to help pick the trip">
+<meta name="twitter:description" content="Rate the options, argue for your favourite, and help lock one in. Opens in advntr.">
+<meta name="twitter:image" content="https://advntr-landing.vercel.app/img/02-triphome.png">
 <link rel="icon" type="image/png" href="/img/icon.png">
 <style>
   :root {
