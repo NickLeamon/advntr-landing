@@ -144,7 +144,6 @@
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(id).catch(function () {});
       }
-      track('invite_store_redirect');
 
       // Destination, not route: already-installed testers must land IN
       // THE TRIP, not on TestFlight. Fire the deep link first. If advntr
@@ -155,6 +154,11 @@
       // to it.
       if (STORE_URL) {
         var fallbackTimer = setTimeout(function () {
+          // Track here, not on click: this is the one place that means
+          // "the fallback actually redirected them to the store" — tracking
+          // on click would fire for every tap, including installed testers
+          // who never see TestFlight (register §58/§59).
+          track('invite_store_redirect');
           location.href = STORE_URL;
         }, 1500);
         var cancelFallback = function () {
