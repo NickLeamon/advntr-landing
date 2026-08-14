@@ -169,10 +169,11 @@
 
   <section class="footer-cta" id="get">
     <h2>Plan the trip. Skip the spreadsheet<em style="color:var(--accent);font-style:normal">.</em></h2>
-    <p>Private beta · iPhone</p>
+    <p>Open beta on TestFlight · iPhone · free</p>
     <div class="cta-row" style="justify-content:center">
-      <a class="cta" href="mailto:naleamon1@gmail.com?subject=advntr%20beta%20access">Get early access</a>
+      <a class="cta" id="get-app" href="https://testflight.apple.com/join/TGDbMpqf" target="_blank" rel="noopener">Get the beta on TestFlight</a>
     </div>
+    <p style="font-size:14px;margin-top:18px"><a href="mailto:naleamon1@gmail.com?subject=advntr%20beta%20access" style="color:inherit">Trouble getting in? Email us.</a></p>
   </section>
 </div>
 
@@ -182,6 +183,39 @@
     <span><a href="/privacy.html" style="color:inherit">Privacy</a> &nbsp;·&nbsp; © 2026 advntr</span>
   </footer>
 </div>
+
+<script>
+(function () {
+  // Same anon-insert path invite.html uses -- publishable key, RLS insert
+  // policy is `with_check true`, no session needed. Best-effort: no await,
+  // no retry, failures swallowed. This exists to answer one question the
+  // homepage could not answer before: whether strangers reach this page at
+  // all, separately from whether they click through. Zero installs is
+  // otherwise equally well explained by "nobody came" and "nobody clicked".
+  var SUPABASE_URL = 'https://vjsgvkercbtyzpdauswo.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_UM19CZ6ExmxXyzsgn4Flbg_KmLMIMXz';
+
+  function track(name) {
+    fetch(SUPABASE_URL + '/rest/v1/analytics_events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ kind: name, payload: { page: 'index', ref: document.referrer || null } })
+    }).catch(function () {});
+  }
+
+  track('landing_view');
+
+  // The CTA opens in a new tab, so this page is never unloaded and the fetch
+  // above cannot lose the race to navigation the way invite.html's
+  // store-redirect call can. Keep target="_blank" if you touch that link.
+  var cta = document.getElementById('get-app');
+  if (cta) cta.addEventListener('click', function () { track('landing_get_app'); });
+})();
+</script>
 
 </body>
 </html>
