@@ -63,6 +63,10 @@
     border: none; cursor: pointer; transition: transform .15s, opacity .15s;
   }
   .cta:hover { transform: translateY(-1px); opacity: .9; }
+  .cta.secondary {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border); margin-top: 12px;
+  }
   .fallback { color: var(--muted); font-size: 14px; margin-top: 18px; }
   .fallback a { color: var(--text); }
 
@@ -148,42 +152,47 @@
         '<p class="pitch">' + inviter + ' wants your take on <span class="trip">' + tripName + '</span></p>' +
         '<p class="meta">' + invite.draft_count + ' ' + draftWord + ' pitched' +
           (invite.member_count > 0 ? ' · ' + invite.member_count + ' already in' : '') + '</p>' +
-        '<button class="cta" id="open-cta">Open in advntr</button>' +
-        '<p class="fallback">New to advntr? <a href="' + STORE_URL +
-          '">Join the beta on TestFlight</a> — install it, then this link takes you straight in.</p>' +
+        '<button class="cta" id="store-cta">Get advntr &amp; join</button>' +
+        '<button class="cta secondary" id="open-cta">I already have advntr</button>' +
+        '<p class="fallback">Free beta on TestFlight. Install it, come back here, ' +
+          'and tap “I already have advntr”.</p>' +
       '</div>';
 
-    document.getElementById('open-cta').addEventListener('click', function () {
-      // Must run inside this handler — clipboard writes only resolve inside
-      // a user gesture on iOS Safari (spec §4a).
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(id).catch(function () {});
-      }
+    // The person holding an invite link usually does NOT have the app — that
+    // is what an invite is for. So the two destinations are now separate,
+    // explicitly labelled buttons and NOTHING is attempted on their behalf.
+    //
+    // What this replaces, and why (blockers doc 2026-08-20): the single
+    // "Open in advntr" button fired `advntr://join/<id>` unconditionally and
+    // let a 1500ms timer fall through to TestFlight. On iOS, a custom scheme
+    // that no installed app registers does not fail silently — Safari puts up
+    // "Safari cannot open the page because the address is invalid." So every
+    // genuine invitee was shown a system error, and the fallback then rescued
+    // them *underneath an alert they had already read*. The CEO's mother hit
+    // exactly this, called the link invalid, and was right.
+    //
+    // Register §58/§59 still holds — an installed tester must land IN THE
+    // TRIP, never on TestFlight — and it holds better here than it did under
+    // the timer: they pick their own door instead of racing one.
+    document.getElementById('store-cta').addEventListener('click', function () {
+      copyId();
+      track('invite_store_tapped');
+      location.href = STORE_URL;
+    });
 
-      // Destination, not route: already-installed testers must land IN
-      // THE TRIP, not on TestFlight. Fire the deep link first. If advntr
-      // takes the navigation, this page backgrounds (visibilitychange /
-      // pagehide) before the timer fires, and the TestFlight fallback is
-      // cancelled. Only someone without the app — for whom the deep link
-      // is a silent no-op and the page stays foregrounded — falls through
-      // to it.
-      if (STORE_URL) {
-        var fallbackTimer = setTimeout(function () {
-          // Track here, not on click: this is the one place that means
-          // "the fallback actually redirected them to the store" — tracking
-          // on click would fire for every tap, including installed testers
-          // who never see TestFlight (register §58/§59).
-          track('invite_store_redirect');
-          location.href = STORE_URL;
-        }, 1500);
-        var cancelFallback = function () {
-          clearTimeout(fallbackTimer);
-        };
-        document.addEventListener('visibilitychange', cancelFallback);
-        window.addEventListener('pagehide', cancelFallback);
-      }
+    document.getElementById('open-cta').addEventListener('click', function () {
+      copyId();
+      track('invite_open_app_tapped');
       location.href = 'advntr://join/' + id;
     });
+  }
+
+  // Must run inside the click handler — clipboard writes only resolve inside
+  // a user gesture on iOS Safari (spec §4a).
+  function copyId() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(id).catch(function () {});
+    }
   }
 
   if (!id) {
