@@ -2,5 +2,13 @@
   "rewrites": [
     { "source": "/i/:id", "destination": "/invite.html" },
     { "source": "/join/:id", "destination": "/invite.html" }
+  ],
+  "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" }
+      ]
+    }
   ]
 }
