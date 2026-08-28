@@ -117,7 +117,17 @@
   // location.href changes, so it can lose the race against navigation same
   // as any fire-before-unload beacon; sendBeacon isn't usable here since it
   // can't carry the apikey/Authorization headers this endpoint needs.
-  function track(name) {
+  function track(name, extra) {
+    // `ref` mirrors what index.html has captured since 08-14. Without it,
+    // all 29 invite-page events ever recorded read as ref-null, and an
+    // invite opened from iMessage is indistinguishable from one opened
+    // from a pasted URL — on the one page where the sharing channel is
+    // the whole question. Empty string, not null, so a direct open is
+    // distinguishable from a row written before this field existed.
+    var payload = { inviteId: id, page: 'invite', ref: document.referrer || '' };
+    // Hand-rolled merge rather than Object.assign, to keep this file's ES5
+    // idiom — it ships to whatever browser an invite link happens to open in.
+    if (extra) { for (var k in extra) { if (Object.prototype.hasOwnProperty.call(extra, k)) payload[k] = extra[k]; } }
     fetch(SUPABASE_URL + '/rest/v1/analytics_events', {
       method: 'POST',
       headers: {
@@ -125,13 +135,7 @@
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
       },
-      // `ref` mirrors what index.html has captured since 08-14. Without it,
-      // all 29 invite-page events ever recorded read as ref-null, and an
-      // invite opened from iMessage is indistinguishable from one opened
-      // from a pasted URL — on the one page where the sharing channel is
-      // the whole question. Empty string, not null, so a direct open is
-      // distinguishable from a row written before this field existed.
-      body: JSON.stringify({ kind: name, payload: { inviteId: id, page: 'invite', ref: document.referrer || '' } })
+      body: JSON.stringify({ kind: name, payload: payload })
     }).catch(function () {});
   }
 
@@ -141,7 +145,14 @@
     });
   }
 
-  function renderInvalid() {
+  // Emits, where it used to be silent. renderFound was the only path that
+  // wrote an event, so a person who tapped a link and hit a dead invite was
+  // recorded exactly like a person who never tapped at all -- both are zero
+  // rows. That ambiguity is not academic: on 2026-08-27 four invites showed
+  // zero opens and nothing in the data could separate "nobody tapped" from
+  // "four people tapped and the page broke."
+  function renderInvalid(reason) {
+    track('invite_invalid', { reason: reason || 'not_found' });
     content.className = 'state';
     content.innerHTML = 'This invite link isn’t valid anymore — it may have expired or been revoked.<br><br><a href="/">Learn about advntr &rarr;</a>';
   }
@@ -202,7 +213,7 @@
   }
 
   if (!id) {
-    renderInvalid();
+    renderInvalid('no_id');
     return;
   }
 
@@ -221,12 +232,15 @@
     })
     .then(function (rows) {
       if (!rows || !rows.length) {
-        renderInvalid();
+        renderInvalid('not_found');
         return;
       }
       renderFound(rows[0]);
     })
     .catch(function () {
+      // Third terminal path, and it was silent too. A reachable page whose
+      // lookup fails still means a human tapped the link.
+      track('invite_load_failed');
       content.className = 'state';
       content.innerHTML = 'Couldn’t load this invite. Check your connection and reload.';
     });
