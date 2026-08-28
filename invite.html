@@ -125,7 +125,13 @@
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
       },
-      body: JSON.stringify({ kind: name, payload: { inviteId: id } })
+      // `ref` mirrors what index.html has captured since 08-14. Without it,
+      // all 29 invite-page events ever recorded read as ref-null, and an
+      // invite opened from iMessage is indistinguishable from one opened
+      // from a pasted URL — on the one page where the sharing channel is
+      // the whole question. Empty string, not null, so a direct open is
+      // distinguishable from a row written before this field existed.
+      body: JSON.stringify({ kind: name, payload: { inviteId: id, page: 'invite', ref: document.referrer || '' } })
     }).catch(function () {});
   }
 

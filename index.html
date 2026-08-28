@@ -213,7 +213,11 @@
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
       },
-      body: JSON.stringify({ kind: name, payload: { page: 'index', ref: document.referrer || null } })
+      // Empty string rather than null from 2026-08-28: a null `ref` could not
+      // be told apart from a row written before the field existed, and that
+      // ambiguity is the exact class of error this venture keeps making.
+      // Rows before the 08-28 deploy use null for direct; rows after use ''.
+      body: JSON.stringify({ kind: name, payload: { page: 'index', ref: document.referrer || '' } })
     }).catch(function () {});
   }
 
