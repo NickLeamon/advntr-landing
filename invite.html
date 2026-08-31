@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>You're invited — advntr</title>
+<title>advntr invite</title>
 <meta name="description" content="Someone wants your take on a trip. Open it in advntr.">
 <meta name="robots" content="noindex">
 <!-- Link preview. This URL's whole job is to be pasted into a group chat, so the
@@ -15,12 +15,12 @@
 <meta property="og:site_name" content="advntr">
 <meta property="og:title" content="You're invited to help pick the trip">
 <meta property="og:description" content="Rate the options, argue for your favourite, and help lock one in. Opens in advntr.">
-<meta property="og:image" content="https://advntr-landing.vercel.app/img/02-triphome.png">
+<meta property="og:image" content="https://advntr-landing.vercel.app/img/02-triphome.jpg">
 <meta property="og:image:alt" content="An advntr trip with options to rate">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="You're invited to help pick the trip">
 <meta name="twitter:description" content="Rate the options, argue for your favourite, and help lock one in. Opens in advntr.">
-<meta name="twitter:image" content="https://advntr-landing.vercel.app/img/02-triphome.png">
+<meta name="twitter:image" content="https://advntr-landing.vercel.app/img/02-triphome.jpg">
 <link rel="icon" type="image/png" href="/img/icon.png">
 <style>
   :root {
@@ -154,7 +154,7 @@
   function renderInvalid(reason) {
     track('invite_invalid', { reason: reason || 'not_found' });
     content.className = 'state';
-    content.innerHTML = 'This invite link isn’t valid anymore — it may have expired or been revoked.<br><br><a href="/">Learn about advntr &rarr;</a>';
+    content.innerHTML = 'This invite link isn’t valid anymore. It may have expired or been revoked.<br><br><a href="/">Learn about advntr &rarr;</a>';
   }
 
   function renderFound(invite) {
