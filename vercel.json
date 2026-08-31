@@ -1,7 +1,8 @@
 {
   "rewrites": [
     { "source": "/i/:id", "destination": "/invite.html" },
-    { "source": "/join/:id", "destination": "/invite.html" }
+    { "source": "/join/:id", "destination": "/invite.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" }
   ],
   "headers": [
     {

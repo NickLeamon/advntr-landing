@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>advntr — dashboard</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/img/icon.png">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --card: #141417;
+    --border: #232329;
+    --text: #f4f4f5;
+    --muted: #9d9da6;
+    --accent: #ff4560;
+    --good: #35c98c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 80px; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 28px 0; }
+  .wordmark { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); text-decoration: none; }
+  .wordmark span { color: var(--accent); }
+  .signout {
+    font-size: 14px; color: var(--muted); background: none; border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: 999px; cursor: pointer; font-family: inherit;
+  }
+  .signout:hover { color: var(--text); border-color: var(--muted); }
+
+  /* Auth gate */
+  .gate { max-width: 380px; margin: 12vh auto 0; text-align: center; }
+  .gate h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .gate p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+  .gate input {
+    width: 100%; font-size: 15px; color: var(--text); background: var(--card);
+    border: 1px solid var(--border); border-radius: 10px; padding: 13px 16px; margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .gate input:focus { outline: none; border-color: var(--accent); }
+  .gate button {
+    width: 100%; font-size: 15px; font-weight: 700; color: var(--bg); background: var(--text);
+    padding: 13px 16px; border-radius: 10px; border: none; cursor: pointer; font-family: inherit;
+  }
+  .gate button:hover { opacity: .9; }
+  .gate button:disabled { opacity: .5; cursor: default; }
+  .gate .note { font-size: 13px; margin-top: 16px; }
+  .gate .error { color: var(--accent); }
+
+  /* Sections */
+  section.block { margin-top: 40px; }
+  section.block h2 {
+    font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px;
+  }
+  .card .label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .card .big { font-size: 30px; font-weight: 800; letter-spacing: -1px; }
+  .card .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .card svg { display: block; width: 100%; height: 48px; margin-top: 10px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .barrow { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 14px; }
+  .barrow .name { flex: 0 0 140px; color: var(--muted); }
+  .barrow .track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .barrow .fill { height: 100%; background: var(--accent); }
+  .barrow .val { flex: 0 0 70px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .loading, .empty { color: var(--muted); font-size: 14px; padding: 20px 0; }
+  .fatal { color: var(--accent); font-size: 14px; padding: 20px 0; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <a class="wordmark" href="#">advntr<span>.</span> dashboard</a>
+    <button class="signout" id="signout" style="display:none">Sign out</button>
+  </nav>
+
+  <div id="gate" class="gate" style="display:none">
+    <h1>Team dashboard</h1>
+    <p>Sign in with your team email to see the numbers.</p>
+    <input id="email-input" type="email" placeholder="you@example.com" autocomplete="email">
+    <button id="send-link">Send magic link</button>
+    <p class="note" id="gate-note"></p>
+  </div>
+
+  <div id="app" style="display:none"></div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// Same publishable key already embedded in index.html / invite.html — safe
+// client-side because every dashboard_* RPC checks a server-side allowlist
+// (dashboard_admins, via is_dashboard_admin()) before returning anything.
+// Signed out or signed in as a non-team email both get zero rows back; the
+// key never grants that on its own.
+const SUPABASE_URL = 'https://vjsgvkercbtyzpdauswo.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_UM19CZ6ExmxXyzsgn4Flbg_KmLMIMXz';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const gate = document.getElementById('gate');
+const app = document.getElementById('app');
+const signoutBtn = document.getElementById('signout');
+const gateNote = document.getElementById('gate-note');
+
+document.getElementById('send-link').addEventListener('click', async () => {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email) return;
+  const btn = document.getElementById('send-link');
+  btn.disabled = true;
+  gateNote.className = 'note';
+  gateNote.textContent = 'Sending…';
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: location.origin + '/dashboard' }
+  });
+  btn.disabled = false;
+  if (error) {
+    gateNote.className = 'note error';
+    gateNote.textContent = error.message;
+  } else {
+    gateNote.className = 'note';
+    gateNote.textContent = 'Check your email for a sign-in link.';
+  }
+});
+
+signoutBtn.addEventListener('click', async () => {
+  await supabase.auth.signOut();
+});
+
+supabase.auth.onAuthStateChange((_event, session) => render(session));
+render((await supabase.auth.getSession()).data.session);
+
+async function render(session) {
+  if (!session) {
+    gate.style.display = '';
+    app.style.display = 'none';
+    signoutBtn.style.display = 'none';
+    return;
+  }
+  gate.style.display = 'none';
+  app.style.display = '';
+  signoutBtn.style.display = '';
+  app.innerHTML = '<p class="loading">Loading…</p>';
+  try {
+    await loadDashboard();
+  } catch (err) {
+    if (String(err.message || '').includes('not authorized')) {
+      app.innerHTML =
+        '<div class="gate" style="margin-top:12vh">' +
+          '<h1>Not on the team list</h1>' +
+          '<p>' + escapeHtml(session.user.email) + ' isn’t in dashboard_admins yet. ' +
+          'Ask an admin to add it, then sign out and back in.</p>' +
+        '</div>';
+    } else {
+      app.innerHTML = '<p class="fatal">Couldn’t load the dashboard: ' + escapeHtml(err.message || String(err)) + '</p>';
+    }
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function fmtNum(n) {
+  if (n === null || n === undefined) return '—';
+  return Number(n).toLocaleString();
+}
+function fmtPct(n) {
+  if (n === null || n === undefined) return '—';
+  return Number(n).toFixed(1) + '%';
+}
+
+// Minimal dependency-free line chart. `values` is an array of numbers,
+// oldest first. Returns an inline <svg> string sized by CSS (width:100%).
+function sparkline(values, color) {
+  color = color || 'var(--accent)';
+  const w = 240, h = 48, pad = 4;
+  if (!values.length) return '<svg viewBox="0 0 ' + w + ' ' + h + '"></svg>';
+  const max = Math.max(...values, 0);
+  const min = Math.min(...values, 0);
+  const range = (max - min) || 1;
+  const step = values.length > 1 ? (w - pad * 2) / (values.length - 1) : 0;
+  const points = values.map((v, i) => {
+    const x = pad + i * step;
+    const y = h - pad - ((v - min) / range) * (h - pad * 2);
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
+    '<polyline points="' + points + '" fill="none" stroke="' + color + '" stroke-width="2" ' +
+    'stroke-linejoin="round" stroke-linecap="round"/></svg>';
+}
+
+function card(label, big, sub, sparkSvg) {
+  return '<div class="card"><div class="label">' + label + '</div>' +
+    '<div class="big">' + big + '</div>' +
+    (sub ? '<div class="sub">' + sub + '</div>' : '') +
+    (sparkSvg || '') + '</div>';
+}
+
+function barRows(rows) {
+  const max = Math.max(...rows.map(r => r.val), 1);
+  return rows.map(r =>
+    '<div class="barrow"><div class="name">' + escapeHtml(r.name) + '</div>' +
+    '<div class="track"><div class="fill" style="width:' + Math.round(100 * r.val / max) + '%"></div></div>' +
+    '<div class="val">' + fmtNum(r.val) + '</div></div>'
+  ).join('');
+}
+
+async function rpc(name, args) {
+  const { data, error } = await supabase.rpc(name, args || {});
+  if (error) throw error;
+  return data || [];
+}
+
+async function loadDashboard() {
+  const [
+    growth, active, retention, lapsed,
+    decisionRate, timeToDecision, soloVsGroup,
+    eventCounts, draftFunnel, bookingTaps,
+    inviteFunnel, shareRate, invitedShare, errorRate
+  ] = await Promise.all([
+    rpc('dashboard_user_growth'), rpc('dashboard_active_users'),
+    rpc('dashboard_retention_cohorts'), rpc('dashboard_lapsed_users'),
+    rpc('dashboard_group_decision_rate'), rpc('dashboard_time_to_decision'),
+    rpc('dashboard_solo_vs_group'), rpc('dashboard_event_counts_by_kind'),
+    rpc('dashboard_draft_funnel'), rpc('dashboard_booking_taps'),
+    rpc('dashboard_invite_funnel'), rpc('dashboard_share_rate'),
+    rpc('dashboard_invited_share_of_signups'), rpc('dashboard_error_rate')
+  ]);
+
+  const dr = decisionRate[0] || {};
+  const ttd = timeToDecision[0] || {};
+  const svg2 = soloVsGroup[0] || {};
+  const inv = invitedShare[0] || {};
+  const lapsedMap = Object.fromEntries(lapsed.map(r => [r.window_days, r.lapsed_count]));
+
+  const kindTotals = {};
+  for (const r of eventCounts) kindTotals[r.kind] = (kindTotals[r.kind] || 0) + Number(r.event_count);
+  const topKinds = Object.entries(kindTotals).sort((a, b) => b[1] - a[1]).slice(0, 12)
+    .map(([name, val]) => ({ name, val }));
+
+  const bookingTotals = {};
+  for (const r of bookingTaps) {
+    const k = r.booking_kind || 'unknown';
+    bookingTotals[k] = (bookingTotals[k] || 0) + Number(r.tap_count);
+  }
+  const bookingRows = Object.entries(bookingTotals).sort((a, b) => b[1] - a[1])
+    .map(([name, val]) => ({ name, val }));
+
+  app.innerHTML =
+    section('North star — retained users', [
+      card('Signed-up users (cumulative)', fmtNum(growth.at(-1)?.cumulative_signups),
+        growth.length + '-week trend', sparkline(growth.map(r => Number(r.cumulative_signups)))),
+      card('Weekly active users', fmtNum(active.at(-1)?.wau),
+        'retained from prior week: ' + fmtNum(active.at(-1)?.retained_from_prior_week),
+        sparkline(active.map(r => Number(r.wau)))),
+      card('Lapsed — 14 days', fmtNum(lapsedMap[14]), 'no app_open in 14 days'),
+      card('Lapsed — 30 days', fmtNum(lapsedMap[30]), 'no app_open in 30 days'),
+    ]) +
+    (retention.length ? section('Retention cohorts', [tableHtml(
+      ['Signup week', 'Cohort size', 'Retained +1wk', 'Retained +4wk'],
+      retention.map(r => [r.signup_week, fmtNum(r.cohort_size), fmtPct(r.retained_w1_pct), fmtPct(r.retained_w4_pct)])
+    )], true) : '') +
+    section('Is the product working (charter)', [
+      card('Group decision rate', fmtPct(dr.passing_pct),
+        fmtNum(dr.real_trips_passing) + ' / ' + fmtNum(dr.real_trips_total) + ' real trips — stop-condition needs 2+'),
+      card('Time to decision', ttd.n ? ttd.avg_days + 'd avg' : '—',
+        ttd.n ? 'median ' + ttd.median_days + 'd · n=' + ttd.n : 'no decided trips yet'),
+      card('Solo vs. group', fmtPct(svg2.solo_pct),
+        'of ' + fmtNum(svg2.real_trips_total) + ' real trips never reach a 2nd member'),
+    ]) +
+    section('Feature resonance', [
+      wideCard('Event counts by kind (' + windowLabel(eventCounts) + ')', barRows(topKinds)),
+      wideCard('Draft → propose → decide (by trip)', funnelRows(draftFunnel, 'trip_count', 'conversion_from_prior_pct')),
+    ], true) +
+    (bookingRows.length ? section('Booking taps by kind', [wideCard('', barRows(bookingRows))], true) : '') +
+    section('Growth channel', [
+      wideCard('Invite funnel', funnelRows(inviteFunnel, 'invite_count', 'pct_of_sent')),
+      card('Invited share of signups', fmtPct(inv.invited_pct),
+        fmtNum(inv.invited_signups) + ' / ' + fmtNum(inv.total_real_signups) + ' came in via an invite'),
+      card('Share rate (this week)', fmtNum(shareRate.at(-1)?.shares),
+        (shareRate.at(-1)?.shares_per_active_user ?? '—') + ' shares / active user',
+        sparkline(shareRate.map(r => Number(r.shares)))),
+    ]) +
+    section('Health', [
+      card('Errors / active user', shareVal(errorRate.at(-1)?.errors_per_active_user),
+        fmtNum(errorRate.at(-1)?.error_count) + ' error_captured this week',
+        sparkline(errorRate.map(r => Number(r.error_count)))),
+    ]);
+}
+
+function shareVal(n) { return n === null || n === undefined ? '—' : Number(n).toFixed(2); }
+
+function windowLabel(rows) {
+  const weeks = new Set(rows.map(r => r.week_start)).size;
+  return weeks + (weeks === 1 ? ' week' : ' weeks');
+}
+
+function section(title, cardsHtml, noGrid) {
+  return '<section class="block"><h2>' + title + '</h2>' +
+    (noGrid ? cardsHtml.join('') : '<div class="grid">' + cardsHtml.join('') + '</div>') +
+    '</section>';
+}
+
+function wideCard(label, inner) {
+  return '<div class="card">' + (label ? '<div class="label">' + label + '</div>' : '') + inner + '</div>';
+}
+
+function tableHtml(headers, rows) {
+  return '<table><thead><tr>' + headers.map((h, i) => '<th' + (i > 0 ? ' class="num"' : '') + '>' + h + '</th>').join('') +
+    '</tr></thead><tbody>' +
+    rows.map(r => '<tr>' + r.map((c, i) => '<td' + (i > 0 ? ' class="num"' : '') + '>' + c + '</td>').join('') + '</tr>').join('') +
+    '</tbody></table>';
+}
+
+function funnelRows(rows, countKey, pctKey) {
+  if (!rows.length) return '<p class="empty">No data yet.</p>';
+  const max = Math.max(...rows.map(r => Number(r[countKey])), 1);
+  return rows.map(r =>
+    '<div class="barrow"><div class="name">' + escapeHtml(r.stage) + '</div>' +
+    '<div class="track"><div class="fill" style="width:' + Math.round(100 * Number(r[countKey]) / max) + '%"></div></div>' +
+    '<div class="val">' + fmtNum(r[countKey]) + (r[pctKey] != null ? ' (' + fmtPct(r[pctKey]) + ')' : '') + '</div></div>'
+  ).join('');
+}
+</script>
+
+</body>
+</html>
