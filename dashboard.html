@@ -223,13 +223,28 @@ function barRows(rows) {
   ).join('');
 }
 
+let failedMetrics = [];
+
+// One metric's query blowing up (e.g. unexpected data shape) shouldn't blank
+// the whole dashboard. `not authorized` is the exception -- that means every
+// call will fail identically (caller isn't on the allowlist), so it's left
+// to propagate and trigger the single allowlist-rejection screen in render().
 async function rpc(name, args) {
-  const { data, error } = await supabase.rpc(name, args || {});
-  if (error) throw error;
-  return data || [];
+  try {
+    const { data, error } = await supabase.rpc(name, args || {});
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    const msg = String((err && err.message) || err);
+    if (msg.includes('not authorized')) throw err;
+    console.error('[dashboard] ' + name + ' failed:', msg);
+    failedMetrics.push(name);
+    return [];
+  }
 }
 
 async function loadDashboard() {
+  failedMetrics = [];
   const [
     growth, active, retention, lapsed,
     decisionRate, timeToDecision, soloVsGroup,
@@ -303,7 +318,11 @@ async function loadDashboard() {
       card('Errors / active user', shareVal(errorRate.at(-1)?.errors_per_active_user),
         fmtNum(errorRate.at(-1)?.error_count) + ' error_captured this week',
         sparkline(errorRate.map(r => Number(r.error_count)))),
-    ]);
+    ]) +
+    (failedMetrics.length
+      ? '<p class="fatal">Couldn’t load: ' + failedMetrics.map(escapeHtml).join(', ') +
+        '. Other metrics above loaded fine — check the browser console for details.</p>'
+      : '');
 }
 
 function shareVal(n) { return n === null || n === undefined ? '—' : Number(n).toFixed(2); }
