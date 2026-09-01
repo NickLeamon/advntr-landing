@@ -16,20 +16,34 @@ import { photographicHero } from '../shared/hero';
 // Same sort TripHomeScreen applies: score desc, unscored last.
 const score = (p: ProposalCard) => (p.rating_count > 0 && p.rating_avg != null ? p.rating_avg : -1);
 
-export function SharePreviewScreen({ inviteId }: { inviteId: string }) {
-  const [result, setResult] = useState<PreviewResult | null>(null);
+export function SharePreviewScreen({ inviteId, onJoin, preloaded }: {
+  inviteId: string;
+  onJoin?: () => void;
+  /** App resolves the preview once (it doubles as the membership check);
+   *  reuse it rather than paying a second round trip on first paint. */
+  preloaded?: PreviewResult | null;
+}) {
+  const [result, setResult] = useState<PreviewResult | null>(preloaded ?? null);
 
   useEffect(() => {
+    if (preloaded) { setResult(preloaded); return; }
     let live = true;
     loadPreview(inviteId).then((r) => {
       if (!live) return;
       setResult(r);
-      if (r.kind === 'found') track('invite_opened', inviteId, { previewSource: r.preview.source, proposals: r.preview.proposals.length });
-      else if (r.kind === 'invalid') track('invite_invalid', inviteId, { reason: r.reason });
-      else track('invite_load_failed', inviteId);
     });
     return () => { live = false; };
-  }, [inviteId]);
+  }, [inviteId, preloaded]);
+
+  // Fires once per resolved outcome, whoever loaded it.
+  const [tracked, setTracked] = useState(false);
+  useEffect(() => {
+    if (!result || tracked) return;
+    setTracked(true);
+    if (result.kind === 'found') track('invite_opened', inviteId, { previewSource: result.preview.source, proposals: result.preview.proposals.length });
+    else if (result.kind === 'invalid') track('invite_invalid', inviteId, { reason: result.reason });
+    else track('invite_load_failed', inviteId);
+  }, [result, tracked, inviteId]);
 
   if (!result) return <p className="state">Loading the trip&hellip;</p>;
   if (result.kind === 'invalid') {
@@ -43,10 +57,10 @@ export function SharePreviewScreen({ inviteId }: { inviteId: string }) {
   if (result.kind === 'failed') {
     return <p className="state">Couldn’t load this trip. Check your connection and reload.</p>;
   }
-  return <Found inviteId={inviteId} preview={result.preview} />;
+  return <Found inviteId={inviteId} preview={result.preview} onJoin={onJoin} />;
 }
 
-function Found({ inviteId, preview }: { inviteId: string; preview: Preview }) {
+function Found({ inviteId, preview, onJoin }: { inviteId: string; preview: Preview; onJoin?: () => void }) {
   const inviter = preview.inviter_first_name || 'A friend';
   const proposals = [...preview.proposals].sort((a, b) => score(b) - score(a));
   const decided = proposals.find((p) => p.is_decided) ?? null;
@@ -99,8 +113,8 @@ function Found({ inviteId, preview }: { inviteId: string; preview: Preview }) {
       )}
 
       <div className="doors">
-        {WEB_JOIN_ENABLED && (
-          <button className="cta" onClick={() => { track('web_join_tapped', inviteId); location.hash = '#join'; }}>
+        {WEB_JOIN_ENABLED && onJoin && (
+          <button className="cta" onClick={() => { track('web_join_tapped', inviteId); onJoin?.(); }}>
             Add your vote
           </button>
         )}

@@ -10,9 +10,12 @@
     "dev": "npm --prefix app run dev",
     "typecheck": "npm --prefix app run typecheck",
     "verify:dist": "node scripts/verify-dist.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "verify:live": "node scripts/verify-live.mjs",
+    "smoke:member": "node scripts/smoke-member.mjs"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "playwright-core": "1.62.1"
   }
 }

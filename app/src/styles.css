@@ -72,3 +72,133 @@ footer a { color: inherit; }
 .cta.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
 .fallback { color: var(--muted); font-size: 14px; margin: 14px 0 0; text-align: center; }
 .fallback a { color: var(--text); }
+
+/* ——— member surface ——————————————————————————————————————————————————— */
+.block { margin: 28px 0; }
+.block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.block-head .section-title { margin: 0; }
+.section-title.sub { margin: 20px 0 8px; }
+
+.banner {
+  background: #2a1418; border: 1px solid var(--accent); color: var(--text);
+  border-radius: 12px; padding: 10px 14px; font-size: 14px; margin: 0 0 16px;
+}
+.banner.error { color: #ffd7dd; }
+
+.card.col { display: block; }
+.card-top { display: flex; gap: 14px; }
+
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: #23232a; color: var(--text);
+  object-fit: cover; flex: none; font-weight: 700;
+}
+
+.stars { display: inline-flex; gap: 2px; }
+.star {
+  background: none; border: none; padding: 0 2px; cursor: pointer;
+  font-size: 20px; line-height: 1; color: var(--faint); font-family: inherit;
+}
+.star.on { color: var(--accent); }
+.star:disabled { cursor: default; }
+
+.vote {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px;
+}
+.vote-label { font-size: 14px; color: var(--muted); }
+.choices { display: inline-flex; gap: 8px; align-items: center; }
+.choice {
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px;
+}
+.choice.on { border-color: var(--accent); color: var(--accent); }
+
+.linkish {
+  background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;
+  font-size: 14px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px;
+}
+.linkish:hover { color: var(--text); }
+.linkish.on { color: var(--accent); }
+.block-link { display: block; margin-top: 12px; }
+
+.items { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.items li { font-size: 14px; display: flex; gap: 10px; align-items: baseline; }
+.items a { color: var(--text); }
+.kind {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--faint); flex: none; width: 34px;
+}
+
+.people { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.people li { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.who { font-weight: 600; }
+.tag {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--faint); border: 1px solid var(--border); border-radius: 999px; padding: 2px 7px; margin-left: 8px;
+}
+.note { color: var(--muted); font-size: 13px; }
+
+.tasks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.tasks li {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
+}
+.task-label { font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chat { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 14px; }
+.chat li { display: flex; gap: 10px; }
+.chat-meta { margin: 0; font-size: 13px; }
+.chat-body { margin: 2px 0 0; font-size: 15px; }
+.chat-actions { margin: 4px 0 0; display: flex; gap: 14px; }
+.chat-actions .linkish { font-size: 13px; text-decoration: none; }
+
+.talk { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px; }
+.talk-line { margin: 0 0 6px; font-size: 14px; color: var(--muted); }
+.talk-line b { color: var(--text); }
+
+.composer { display: flex; gap: 8px; margin-top: 10px; }
+.composer input {
+  flex: 1; min-width: 0; font-family: inherit; font-size: 15px; color: var(--text);
+  background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 11px 16px;
+}
+.composer.small input { font-size: 14px; padding: 9px 14px; }
+.composer input:focus { outline: none; border-color: var(--muted); }
+.composer button {
+  font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  background: var(--text); color: var(--bg); border: none; border-radius: 999px; padding: 0 18px;
+}
+.composer button:disabled { opacity: .4; cursor: default; }
+
+/* ——— join ————————————————————————————————————————————————————————————— */
+.join { padding: 8px 0 24px; }
+.join .cta { margin-bottom: 10px; }
+.field { display: block; margin: 0 0 14px; }
+.field span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.field input {
+  width: 100%; font-family: inherit; font-size: 16px; color: var(--text);
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px;
+}
+.field input:focus { outline: none; border-color: var(--muted); }
+.picked {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; font-size: 16px;
+}
+.options { list-style: none; padding: 0; margin: -6px 0 14px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.options li + li { border-top: 1px solid var(--border); }
+.options button {
+  width: 100%; text-align: left; font-family: inherit; font-size: 15px; cursor: pointer;
+  background: var(--card); color: var(--text); border: none; padding: 12px 15px;
+}
+.options button:hover { background: #1b1b20; }
+.iata { color: var(--muted); font-size: 13px; margin-left: 8px; }
+
+.card-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px;
+}
+/* Locking the trip is a group decision, not a disclosure — it must not
+   read as the same weight as "Details" sitting beside it. */
+.choice.decide { border-color: var(--muted); color: var(--text); }
+.choice.decide:hover { border-color: var(--accent); color: var(--accent); }
