@@ -1,0 +1,74 @@
+/* Same tokens as index.html / invite.html at the repo root — one site, one
+   palette. Monochrome, one accent; the photography carries the colour. */
+:root {
+  --bg: #0b0b0d;
+  --card: #141417;
+  --border: #232329;
+  --text: #f4f4f5;
+  --muted: #9d9da6;
+  --faint: #5c5c66;
+  --accent: #ff4560;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 0 20px; width: 100%; }
+header { display: flex; justify-content: center; padding: 28px 0 8px; }
+.wordmark { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); text-decoration: none; }
+.wordmark span { color: var(--accent); }
+main { flex: 1; padding: 12px 0 24px; }
+footer { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 0 32px; }
+footer a { color: inherit; }
+
+.state { color: var(--muted); font-size: 16px; text-align: center; padding: 48px 0; }
+.state a { color: var(--text); }
+
+/* Trip header */
+.cover { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 16px; display: block; margin-bottom: 18px; background: var(--card); }
+.pitch { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; margin: 0 0 6px; }
+.pitch .trip { color: var(--accent); }
+.meta { color: var(--muted); font-size: 15px; margin: 0 0 22px; }
+
+/* Proposal cards */
+.section-title { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.card {
+  display: flex; gap: 14px; align-items: stretch;
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 12px; text-decoration: none; color: inherit;
+}
+.card.decided { border-color: var(--accent); }
+.card-img { width: 96px; height: 96px; border-radius: 10px; object-fit: cover; flex: none; background: #1c1c21; }
+.card-img.empty { display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 22px; }
+.card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.card-title { font-size: 17px; font-weight: 700; letter-spacing: -0.2px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-sub { color: var(--muted); font-size: 14px; margin: 3px 0 0; }
+.card-rating { font-size: 14px; margin: 8px 0 0; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.card-rating .votes { color: var(--muted); }
+.badge {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted);
+}
+.badge.accent { border-color: var(--accent); color: var(--accent); }
+.empty { color: var(--muted); font-size: 15px; text-align: center; padding: 20px 0 28px; }
+
+/* Doors */
+.doors { display: flex; flex-direction: column; gap: 10px; }
+.cta {
+  display: block; width: 100%; font-size: 17px; font-weight: 700; color: var(--bg);
+  background: var(--text); padding: 16px 24px; border-radius: 999px; text-decoration: none;
+  border: none; cursor: pointer; text-align: center; font-family: inherit;
+  transition: transform .15s, opacity .15s;
+}
+.cta:hover { transform: translateY(-1px); opacity: .9; }
+.cta.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.fallback { color: var(--muted); font-size: 14px; margin: 14px 0 0; text-align: center; }
+.fallback a { color: var(--text); }

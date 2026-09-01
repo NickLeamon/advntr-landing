@@ -1,0 +1,18 @@
+{
+  "name": "advntr-landing",
+  "private": true,
+  "description": "Marketing site (static, repo root) plus the web trip view (app/, Vite). One Vercel project.",
+  "workspaces": [
+    "app"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "npm --prefix app run dev",
+    "typecheck": "npm --prefix app run typecheck",
+    "verify:dist": "node scripts/verify-dist.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.62.1"
+  }
+}
