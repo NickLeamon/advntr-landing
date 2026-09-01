@@ -25,7 +25,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
@@ -45,6 +45,8 @@ const check = (name, ok, detail = '') => {
 // byte-for-byte what the browser runs apart from that substitution.
 const appDir = new URL('../app', import.meta.url).pathname;
 const out = join(mkdtempSync(join(tmpdir(), 'advntr-verify-')), 'bundle.mjs');
+// Has to sit inside app/src so esbuild resolves the relative imports the
+// modules under test use. Generated, gitignored, and removed below.
 const entry = join(appDir, 'src', '__verify_entry.ts');
 writeFileSync(entry, `export * from './lib/trip';\nexport * from './lib/session';\nexport { supabase } from './lib/supabase';\n`);
 const build = spawnSync('npx', [
@@ -58,6 +60,7 @@ if (build.status !== 0) {
   console.error(build.stderr || build.stdout);
   process.exit(1);
 }
+rmSync(entry, { force: true });
 const app = await import(out);
 
 // The bundled client persists sessions to localStorage, which node has
